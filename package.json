@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build:clean": "git pull && npm ci && nest build service-main  && pm2 restart bizzbuz-backend",
-    "build": "git pull &&  nest build service-main  && pm2 restart bizzbuz-backend",
+    "build": "nest build service-main  && pm2 restart bizzbuz-backend",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start service-main && docker container start biss-buzz",
     "dev": "docker container start biss-buzz && nest start service-main --watch",
