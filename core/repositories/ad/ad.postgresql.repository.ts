@@ -11,8 +11,7 @@ import { LocationService } from 'shared/service/location.service';
 @Injectable()
 export class AdPostgreSQLRepository
   extends BasePostgreSQLRepository
-  implements AdRepositoryInterface
-{
+  implements AdRepositoryInterface {
   private businessRepository: BusinessRepositoryInterface =
     new BusinessPostgreSQLRepository();
 
@@ -97,32 +96,58 @@ export class AdPostgreSQLRepository
       condition && queryBuilder.andWhere(condition);
     }
 
+    // if (latitude && longitude) {
+    //   queryBuilder.andWhere("ad.status = 'active'");
+    //   queryBuilder.andWhere(
+    //     '(ad.validFrom <= :currentTime AND ad.validTo >= :currentTime)',
+    //   );
+    //   queryBuilder.addSelect(
+    //     `(
+    //           6371 * acos(
+    //               cos(radians(${latitude})) * cos(radians(business.latitude)) *
+    //               cos(radians(business.longitude) - radians(${longitude})) +
+    //               sin(radians(${latitude})) * sin(radians(business.latitude))
+    //           )
+    //       )`, // in meeters
+    //     'distance',
+    //   );
+    //   queryBuilder.andWhere(`(
+    //       6371 * acos(
+    //           cos(radians(${latitude})) * cos(radians(business.latitude)) *
+    //           cos(radians(business.longitude) - radians(${longitude})) +
+    //           sin(radians(${latitude})) * sin(radians(business.latitude))
+    //       )
+    //   ) < ad.adRange`);
+    //   queryBuilder.setParameter('currentTime', new Date());
+    //   queryBuilder.orderBy('distance', 'ASC');
+    // }
     if (latitude && longitude) {
       queryBuilder.andWhere("ad.status = 'active'");
       queryBuilder.andWhere(
         '(ad.validFrom <= :currentTime AND ad.validTo >= :currentTime)',
       );
-      queryBuilder.addSelect(
-        `(
-              6371 * acos(
-                  cos(radians(${latitude})) * cos(radians(business.latitude)) *
-                  cos(radians(business.longitude) - radians(${longitude})) +
-                  sin(radians(${latitude})) * sin(radians(business.latitude))
-              )
-          )`, // in meeters
-        'distance',
-      );
-      queryBuilder.andWhere(`(
-          6371 * acos(
-              cos(radians(${latitude})) * cos(radians(business.latitude)) *
-              cos(radians(business.longitude) - radians(${longitude})) +
-              sin(radians(${latitude})) * sin(radians(business.latitude))
-          )
-      ) < ad.adRange`);
+
+      // Distance calculation using Haversine formula
+      const distanceExpression = `(
+        6371 * acos(
+          cos(radians(${latitude})) * cos(radians(business.latitude)) *
+          cos(radians(business.longitude) - radians(${longitude})) +
+          sin(radians(${latitude})) * sin(radians(business.latitude))
+        )
+      ) * 1000`; // in meters
+
+      // Select the distance for ordering and filtering
+      queryBuilder.addSelect(distanceExpression, 'distance');
+
+      // Ensure the ad is within the ad range
+      queryBuilder.andWhere(`${distanceExpression} < ad.adRange`);
+
       queryBuilder.setParameter('currentTime', new Date());
       queryBuilder.orderBy('distance', 'ASC');
-    }
 
+      // Optional: Add logging to debug distance calculation
+      console.log('Calculated distance:', distanceExpression);
+    }
     return queryBuilder;
   }
 
