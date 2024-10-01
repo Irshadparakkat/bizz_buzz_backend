@@ -40,8 +40,9 @@ export class AdPostgreSQLRepository
     offset?: number,
     latitude?: number,
     longitude?: number,
+    busAd?: boolean
   ): Promise<IAd[]> {
-    const queryBuilder = await this.getQuery(where, latitude, longitude);
+    const queryBuilder = await this.getQuery(where, latitude, longitude, busAd);
 
     const entity = await queryBuilder.skip(offset).take(limit).getMany();
     return entity.map((ad) => this.fromEntity(ad, latitude, longitude));
@@ -51,8 +52,9 @@ export class AdPostgreSQLRepository
     where: Partial<IAd> = {},
     latitude?: number,
     longitude?: number,
+    busAd?: boolean
   ): Promise<number> {
-    const queryBuilder = await this.getQuery(where, latitude, longitude);
+    const queryBuilder = await this.getQuery(where, latitude, longitude, busAd);
     return await queryBuilder.getCount();
   }
 
@@ -60,6 +62,7 @@ export class AdPostgreSQLRepository
     input: Partial<IAd> | Partial<IAd>[] = {},
     latitude?: number,
     longitude?: number,
+    busAd?: boolean
   ) {
     await this.init();
     const repository = this.dataSource().getRepository(EAd);
@@ -96,32 +99,32 @@ export class AdPostgreSQLRepository
       condition && queryBuilder.andWhere(condition);
     }
 
-    // if (latitude && longitude) {
-    //   queryBuilder.andWhere("ad.status = 'active'");
-    //   queryBuilder.andWhere(
-    //     '(ad.validFrom <= :currentTime AND ad.validTo >= :currentTime)',
-    //   );
-    //   queryBuilder.addSelect(
-    //     `(
-    //           6371 * acos(
-    //               cos(radians(${latitude})) * cos(radians(business.latitude)) *
-    //               cos(radians(business.longitude) - radians(${longitude})) +
-    //               sin(radians(${latitude})) * sin(radians(business.latitude))
-    //           )
-    //       )`, // in meeters
-    //     'distance',
-    //   );
-    //   queryBuilder.andWhere(`(
-    //       6371 * acos(
-    //           cos(radians(${latitude})) * cos(radians(business.latitude)) *
-    //           cos(radians(business.longitude) - radians(${longitude})) +
-    //           sin(radians(${latitude})) * sin(radians(business.latitude))
-    //       )
-    //   ) < ad.adRange`);
-    //   queryBuilder.setParameter('currentTime', new Date());
-    //   queryBuilder.orderBy('distance', 'ASC');
-    // }
-    if (latitude && longitude) {
+    if (latitude && longitude && busAd === false) {
+      queryBuilder.andWhere("ad.status = 'active'");
+      queryBuilder.andWhere(
+        '(ad.validFrom <= :currentTime AND ad.validTo >= :currentTime)',
+      );
+      queryBuilder.addSelect(
+        `(
+              6371 * acos(
+                  cos(radians(${latitude})) * cos(radians(business.latitude)) *
+                  cos(radians(business.longitude) - radians(${longitude})) +
+                  sin(radians(${latitude})) * sin(radians(business.latitude))
+              )
+          )`, // in meeters
+        'distance',
+      );
+      queryBuilder.andWhere(`(
+          6371 * acos(
+              cos(radians(${latitude})) * cos(radians(business.latitude)) *
+              cos(radians(business.longitude) - radians(${longitude})) +
+              sin(radians(${latitude})) * sin(radians(business.latitude))
+          )
+      ) < ad.adRange`);
+      queryBuilder.setParameter('currentTime', new Date());
+      queryBuilder.orderBy('distance', 'ASC');
+    }
+    if (latitude && longitude && busAd === true) {
       queryBuilder.andWhere("ad.status = 'active'");
       queryBuilder.andWhere(
         '(ad.validFrom <= :currentTime AND ad.validTo >= :currentTime)',

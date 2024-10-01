@@ -45,6 +45,7 @@ export class AdService {
     offset?: number,
     latitude?: number,
     longitude?: number,
+    busAd?:boolean
   ) {
     return await this.repository.search(
       where,
@@ -52,6 +53,7 @@ export class AdService {
       offset,
       latitude,
       longitude,
+      busAd
     );
   }
 

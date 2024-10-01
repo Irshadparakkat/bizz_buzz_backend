@@ -79,4 +79,11 @@ export class GetQueryAdDto {
     description: 'to get liked status of Ad',
   })
   customerId?: number;
+
+  @ApiProperty({
+    name: 'busAd',
+    required: false,
+    description: 'bus Ad place',
+  })
+  busAd?: boolean;
 }

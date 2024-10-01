@@ -38,7 +38,7 @@ export class AdController {
   constructor(
     private service: AdService,
     private businessService: BusinessService,
-  ) {}
+  ) { }
   singleOutput: SingleOutput<IAd> = new SingleOutput<IAd>();
   errorOutput: ErrorOutput = new ErrorOutput();
   listOutput: ListOutput<IAd> = new ListOutput();
@@ -166,6 +166,7 @@ export class AdController {
     const offset = query.offset ?? 0;
     const latitude = query.latitude;
     const longitude = query.longitude;
+    const busAd = query.busAd ?? false;
 
     delete query.latitude;
     delete query.longitude;
@@ -177,6 +178,7 @@ export class AdController {
       offset,
       latitude,
       longitude,
+      busAd
     );
     return this.listOutput.list(
       res,

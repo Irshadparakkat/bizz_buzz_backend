@@ -14,6 +14,7 @@ export interface AdRepositoryInterface {
     offset?: number,
     latitude?: number,
     longitude?: number,
+    busAd?:boolean
   ): Promise<IAd[]>;
 
   count(
